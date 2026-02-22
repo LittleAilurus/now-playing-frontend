@@ -99,7 +99,7 @@ const MobileTab: React.FC<MobileTabProps> = ({ url, deviceName, onModalOpen }) =
           </Button>
         }
       />
-      <div className="w-full mt-5 text-sm text-color-desc flex flex-col items-center justify-center gap-5">
+      <div className="w-full mt-5 text-sm text-color-desc flex flex-col items-center justify-center gap-5 font-poppins">
         使用{deviceName}扫描下方二维码即可访问
         <div className="bg-white p-4 rounded-3xl w-[204px] h-[204px] flex items-center justify-center shrink-0">
           {url ? (
