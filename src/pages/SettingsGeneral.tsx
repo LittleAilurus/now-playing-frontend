@@ -1146,7 +1146,7 @@ export default function GeneralSettingsPage() {
                     onPress={async () => {
                       setIsDetecting(true);
 
-                      await delay(1000);
+                      await delay(500);
 
                       try {
                         const response = await fetch(
