@@ -106,6 +106,6 @@ export const siteConfig = {
   socialInfo: {
     qqGroupNumber: "150453391",
     qqGroupLink: "https://qm.qq.com/q/hWUZ7bzdS2",
-    githubStars: "300",
+    githubStars: "400",
   } satisfies SocialInfo,
 };
