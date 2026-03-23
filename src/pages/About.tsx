@@ -61,6 +61,8 @@ interface AppInfo {
   fallbackPlatformEnabled: boolean;
   fallbackPlatform: string;
   pollInterval: number;
+  weSingCachePath: string;
+  weSingCachePathExist: boolean;
   lyricSource: string;
   autoSelectBestLyric: boolean;
 }
@@ -411,6 +413,8 @@ export default function AboutPage() {
 - 启用备选音乐平台：${data.fallbackPlatformEnabled ? "开启" : "关闭"}
 - 备选音乐平台：${fallbackPlatformName}
 - 检测频率：${data.pollInterval} ms
+- 全民 K 歌缓存目录：${data.weSingCachePath}
+- 全民 K 歌缓存目录有效：${data.weSingCachePathExist}
 
 歌词设置：
 - 歌词源：${PLATFORM_MAP[data.lyricSource] ?? data.lyricSource}

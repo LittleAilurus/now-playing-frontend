@@ -18,4 +18,5 @@ export const PLATFORM_MAP: Record<string, string> = {
   miebo: "咩播",
   yesplay: "YesPlayMusic",
   cider: "Cider",
+  wesing: "全民K歌",
 };

@@ -140,7 +140,7 @@ function parseLyricLines(settings: SettingsLyric): CoreLyricLine[] {
     if (hasKaraokeLyric && settings.karaokeLyricEnabled) {
       if (source === "netease") {
         parsedLyricLines = parseYrc(karaokeLyric);
-      } else if (source === "qq") {
+      } else if (source === "qq" || source === "wesing") {
         parsedLyricLines = parseQrc(karaokeLyric);
       }
     } else {

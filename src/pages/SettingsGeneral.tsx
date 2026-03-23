@@ -1,5 +1,4 @@
 import type { Key } from "@react-types/shared";
-
 import React, { useEffect, useState } from "react";
 import { Select, SelectItem, SelectSection } from "@heroui/select";
 import {
@@ -9,6 +8,7 @@ import {
   DangerTriangle,
   InfoCircle,
 } from "@mynaui/icons-react";
+import { Folder } from "lucide-react"
 import { useDisclosure } from "@heroui/use-disclosure";
 import {
   Modal,
@@ -28,16 +28,18 @@ import { Chip } from "@heroui/chip";
 import { Tooltip } from "@heroui/tooltip";
 import { Divider } from "@heroui/divider";
 import { Switch } from "@heroui/switch";
+import { Input } from "@heroui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
 import PlatformHelpDrawer from "@/components/PlatformHelpDrawer";
 import { SpotifyIcon, YouTubeMusicIcon } from "@/components/Icons";
 import { PLATFORM_MAP } from "@/constants/platformMap";
 import { Sparkles } from "@/components/animate-icons/Sparkles";
+import { useEnv } from "@/contexts/EnvContext";
 
 // 音乐平台分组
 const platformGroups = {
-  domestic: ["netease", "qq", "kugou", "kuwo", "soda"],
+  domestic: ["netease", "qq", "kugou", "kuwo", "soda", "wesing"],
   foreign: ["spotify", "apple", "youtube"],
   jukebox: ["miebo", "ayna", "huahua", "bq"],
   local: ["potplayer", "foobar", "aimp"],
@@ -168,6 +170,7 @@ export default function GeneralSettingsPage() {
   const [fallbackPlatformEnabled, setFallbackPlatformEnabled] = useState<boolean>();
   const [fallbackPlatform, setFallbackPlatform] = useState<Set<Key>>();
   const [pollInterval, setPollInterval] = useState<Set<Key>>();
+  const [weSingCachePath, setWeSingCachePath] = useState<string>();
 
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -175,6 +178,9 @@ export default function GeneralSettingsPage() {
   const [visibleRows, setVisibleRows] = useState<string[]>(getTargetVisibleRows(platform ?? "netease"),);
   const [initialized, setInitialized] = useState(false);
   const [isDetectHovered, setIsDetectHovered] = useState(false);
+  const [weSingCachePathExist, setWeSingCachePathExist] = useState(true);
+
+  const { isDesktop } = useEnv();
 
   const {
     isOpen: isDeviceHelpModalOpen,
@@ -230,6 +236,7 @@ export default function GeneralSettingsPage() {
       fallbackPlatformEnabled,
       fallbackPlatform: currentFallbackPlatform,
       pollInterval: currentPollInterval,
+      weSingCachePath,
       ...newSettings,
     };
 
@@ -323,6 +330,8 @@ export default function GeneralSettingsPage() {
         setFallbackPlatformEnabled(data.fallbackPlatformEnabled);
         setFallbackPlatform(new Set([data.fallbackPlatform]));
         setPollInterval(new Set([String(data.pollInterval)]));
+        setWeSingCachePath(data.weSingCachePath);
+
       } catch (err: any) {
         console.error("通用设置加载失败", err);
         addToast({
@@ -409,6 +418,29 @@ export default function GeneralSettingsPage() {
       setIsExpanded(false);
     }
   };
+
+  // 全民 K 歌缓存目录是否存在
+  const checkWeSingCachePath = async () => {
+    try {
+      const response = await fetch("/api/system/weSingCachePathExist");
+
+      if (!response.ok) {
+        throw new Error(`HTTP 响应错误！状态码：${response.status}`);
+      }
+
+      const result = await response.json();
+      setWeSingCachePathExist(result.data);
+    } catch (error) {
+      console.error("检查全民 K 歌缓存目录是否存在失败：", error);
+      setWeSingCachePathExist(false);
+    }
+  };
+
+  useEffect(() => {
+    if (platform === "wesing") {
+      checkWeSingCachePath();
+    }
+  }, [platform]);
 
   return (
     <div className="flex justify-center">
@@ -541,7 +573,7 @@ export default function GeneralSettingsPage() {
                 fullWidth={true}
                 radius="lg"
                 selectedKey={
-                  ["netease", "qq", "kugou", "kuwo", "soda"].includes(
+                  ["netease", "qq", "kugou", "kuwo"].includes(
                     platform as string,
                   )
                     ? platform
@@ -569,12 +601,113 @@ export default function GeneralSettingsPage() {
                   title={<TabTitle icon={<img className="h-4.5" src="/assets/kuwo_icon.png" />} label="酷我音乐" />}
                   onClick={changePlatform}
                 />
+              </Tabs>
+              <Tabs
+                classNames={{
+                  tabList: "p-1.5 w-1/2",
+                  tab: "h-10",
+                  tabContent: "text-default-600",
+                }}
+                color="primary"
+                radius="lg"
+                selectedKey={
+                  ["wesing", "soda"].includes(
+                    platform as string,
+                  )
+                    ? platform
+                    : "none"
+                }
+                size="lg"
+              >
+                <Tab
+                  key="wesing"
+                  title={<TabTitle icon={<img className="h-4.5" src="/assets/wesing_icon.png" />} label="全民K歌" />}
+                  onClick={changePlatform}
+                />
                 <Tab
                   key="soda"
                   title={<TabTitle icon={<img className="h-4.5" src="/assets/soda_icon.png" />} label="汽水音乐" />}
                   onClick={changePlatform}
                 />
               </Tabs>
+            </div>
+          </AnimatedRow>
+          <AnimatedRow show={platform === "wesing"}>
+            <div className="flex flex-col gap-3 mt-4">
+              <span className="text-primary-900 text-xs font-bold">
+                全民 K 歌缓存目录
+              </span>
+              <div className="flex gap-2">
+                <Input
+                  className="max-w-full w-full font-poppins"
+                  classNames={{
+                    inputWrapper: "px-4",
+                  }}
+                  type="text"
+                  size="lg"
+                  isReadOnly
+                  value={weSingCachePath}
+                  errorMessage="所选缓存目录不存在"
+                  isInvalid={!weSingCachePathExist}
+                />
+                <Tooltip
+                  className="px-3"
+                  closeDelay={200}
+                  content="选择目录"
+                  delay={200}
+                  placement="top"
+                >
+                  <Button
+                    isIconOnly
+                    size="lg"
+                    variant="flat"
+                    className="bg-default-100 hover:bg-[#212123]"
+                    onPress={async () => {
+                      if (isDesktop) {
+                        const { open } = await import("@tauri-apps/plugin-dialog");
+
+                        const selectedPath = await open({
+                          directory: true,
+                          multiple: false,
+                          title: `选择全民 K 歌缓存目录（目录名为 "WeSingCache"）`,
+                        });
+
+                        if (selectedPath && typeof selectedPath === "string") {
+                          const normalized = selectedPath.replace(/[\\/]+$/, ""); // 去掉末尾斜杠
+                          const dirName = normalized.split(/[\\/]/).pop(); // 取最后一段
+
+                          if (dirName === "WeSingCache") {
+                            setWeSingCachePath(selectedPath);
+                            await saveSettings({ weSingCachePath: selectedPath });
+
+                            setTimeout(() => {
+                              checkWeSingCachePath();
+                            }, 200);
+
+                          } else {
+                            addToast({
+                              color: "danger",
+                              title: "操作失败",
+                              description: `目录名必须为 "WeSingCache"`,
+                              timeout: 6000,
+                            });
+                          }
+                        }
+
+                      } else {
+                        addToast({
+                          color: "warning",
+                          title: "不支持操作",
+                          description: "请在桌面端中进行操作",
+                          timeout: 6000,
+                        });
+                      }
+                    }}
+                  >
+                    <Folder size={20} strokeWidth={1.5} />
+                  </Button>
+                </Tooltip>
+              </div>
             </div>
           </AnimatedRow>
           <AnimatedRow show={visibleRows.includes("foreign")}>
